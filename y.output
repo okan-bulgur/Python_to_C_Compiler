@@ -1,0 +1,687 @@
+State 5 conflicts: 2 shift/reduce
+State 8 conflicts: 2 shift/reduce
+State 13 conflicts: 5 reduce/reduce
+State 21 conflicts: 2 shift/reduce
+State 25 conflicts: 1 shift/reduce
+State 35 conflicts: 5 reduce/reduce
+
+
+Grammar
+
+    0 $accept: program $end
+
+    1 program: statements
+    2        | /* empty */
+
+    3 statements: statement statements
+    4           | statement
+
+    5 statement: assignment
+    6          | control
+
+    7 assignment: VAR EQ calculations
+
+    8 calculations: calculation calculations
+    9             | calculation
+
+   10 calculation: operand operator
+   11            | operand
+
+   12 control: ifControl
+   13        | ifControl afterIfControl
+
+   14 ifControl: IF comparible condition comparible COLON NEXTLINE TAB statements
+
+   15 afterIfControl: elifControl
+   16               | elifControl elseControl
+   17               | elifControl afterIfControl
+   18               | elseControl
+
+   19 elifControl: ELIF comparible condition comparible COLON NEXTLINE TAB statements
+
+   20 elseControl: ELSE COLON NEXTLINE TAB statements
+
+   21 comparible: operand
+   22           | VAR
+
+   23 operand: STRING
+   24        | INTEGER
+   25        | FLOAT
+   26        | VAR
+
+   27 operator: SUM
+   28         | SUB
+   29         | MULT
+   30         | DIV
+
+   31 condition: EQ EQ
+   32          | NEQ
+   33          | BIGGER
+   34          | SMALLER
+   35          | BIGGER EQ
+   36          | SMALLER EQ
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+error (256)
+STRING (258) 23
+INTEGER (259) 24
+FLOAT (260) 25
+VAR (261) 7 22 26
+COLON (262) 14 19 20
+SUM (263) 27
+SUB (264) 28
+MULT (265) 29
+DIV (266) 30
+IF (267) 14
+ELIF (268) 19
+ELSE (269) 20
+EQ (270) 7 31 35 36
+NEQ (271) 32
+BIGGER (272) 33 35
+SMALLER (273) 34 36
+TAB (274) 14 19 20
+NEXTLINE (275) 14 19 20
+
+
+Nonterminals, with rules where they appear
+
+$accept (21)
+    on left: 0
+program (22)
+    on left: 1 2, on right: 0
+statements (23)
+    on left: 3 4, on right: 1 3 14 19 20
+statement (24)
+    on left: 5 6, on right: 3 4
+assignment (25)
+    on left: 7, on right: 5
+calculations (26)
+    on left: 8 9, on right: 7 8
+calculation (27)
+    on left: 10 11, on right: 8 9
+control (28)
+    on left: 12 13, on right: 6
+ifControl (29)
+    on left: 14, on right: 12 13
+afterIfControl (30)
+    on left: 15 16 17 18, on right: 13 17
+elifControl (31)
+    on left: 19, on right: 15 16 17
+elseControl (32)
+    on left: 20, on right: 16 18
+comparible (33)
+    on left: 21 22, on right: 14 19
+operand (34)
+    on left: 23 24 25 26, on right: 10 11 21
+operator (35)
+    on left: 27 28 29 30, on right: 10
+condition (36)
+    on left: 31 32 33 34 35 36, on right: 14 19
+
+
+state 0
+
+    0 $accept: . program $end
+
+    VAR  shift, and go to state 1
+    IF   shift, and go to state 2
+
+    $default  reduce using rule 2 (program)
+
+    program     go to state 3
+    statements  go to state 4
+    statement   go to state 5
+    assignment  go to state 6
+    control     go to state 7
+    ifControl   go to state 8
+
+
+state 1
+
+    7 assignment: VAR . EQ calculations
+
+    EQ  shift, and go to state 9
+
+
+state 2
+
+   14 ifControl: IF . comparible condition comparible COLON NEXTLINE TAB statements
+
+    STRING   shift, and go to state 10
+    INTEGER  shift, and go to state 11
+    FLOAT    shift, and go to state 12
+    VAR      shift, and go to state 13
+
+    comparible  go to state 14
+    operand     go to state 15
+
+
+state 3
+
+    0 $accept: program . $end
+
+    $end  shift, and go to state 16
+
+
+state 4
+
+    1 program: statements .
+
+    $default  reduce using rule 1 (program)
+
+
+state 5
+
+    3 statements: statement . statements
+    4           | statement .
+
+    VAR  shift, and go to state 1
+    IF   shift, and go to state 2
+
+    VAR       [reduce using rule 4 (statements)]
+    IF        [reduce using rule 4 (statements)]
+    $default  reduce using rule 4 (statements)
+
+    statements  go to state 17
+    statement   go to state 5
+    assignment  go to state 6
+    control     go to state 7
+    ifControl   go to state 8
+
+
+state 6
+
+    5 statement: assignment .
+
+    $default  reduce using rule 5 (statement)
+
+
+state 7
+
+    6 statement: control .
+
+    $default  reduce using rule 6 (statement)
+
+
+state 8
+
+   12 control: ifControl .
+   13        | ifControl . afterIfControl
+
+    ELIF  shift, and go to state 18
+    ELSE  shift, and go to state 19
+
+    ELIF      [reduce using rule 12 (control)]
+    ELSE      [reduce using rule 12 (control)]
+    $default  reduce using rule 12 (control)
+
+    afterIfControl  go to state 20
+    elifControl     go to state 21
+    elseControl     go to state 22
+
+
+state 9
+
+    7 assignment: VAR EQ . calculations
+
+    STRING   shift, and go to state 10
+    INTEGER  shift, and go to state 11
+    FLOAT    shift, and go to state 12
+    VAR      shift, and go to state 23
+
+    calculations  go to state 24
+    calculation   go to state 25
+    operand       go to state 26
+
+
+state 10
+
+   23 operand: STRING .
+
+    $default  reduce using rule 23 (operand)
+
+
+state 11
+
+   24 operand: INTEGER .
+
+    $default  reduce using rule 24 (operand)
+
+
+state 12
+
+   25 operand: FLOAT .
+
+    $default  reduce using rule 25 (operand)
+
+
+state 13
+
+   22 comparible: VAR .
+   26 operand: VAR .
+
+    COLON     reduce using rule 22 (comparible)
+    COLON     [reduce using rule 26 (operand)]
+    EQ        reduce using rule 22 (comparible)
+    EQ        [reduce using rule 26 (operand)]
+    NEQ       reduce using rule 22 (comparible)
+    NEQ       [reduce using rule 26 (operand)]
+    BIGGER    reduce using rule 22 (comparible)
+    BIGGER    [reduce using rule 26 (operand)]
+    SMALLER   reduce using rule 22 (comparible)
+    SMALLER   [reduce using rule 26 (operand)]
+    $default  reduce using rule 22 (comparible)
+
+
+state 14
+
+   14 ifControl: IF comparible . condition comparible COLON NEXTLINE TAB statements
+
+    EQ       shift, and go to state 27
+    NEQ      shift, and go to state 28
+    BIGGER   shift, and go to state 29
+    SMALLER  shift, and go to state 30
+
+    condition  go to state 31
+
+
+state 15
+
+   21 comparible: operand .
+
+    $default  reduce using rule 21 (comparible)
+
+
+state 16
+
+    0 $accept: program $end .
+
+    $default  accept
+
+
+state 17
+
+    3 statements: statement statements .
+
+    $default  reduce using rule 3 (statements)
+
+
+state 18
+
+   19 elifControl: ELIF . comparible condition comparible COLON NEXTLINE TAB statements
+
+    STRING   shift, and go to state 10
+    INTEGER  shift, and go to state 11
+    FLOAT    shift, and go to state 12
+    VAR      shift, and go to state 13
+
+    comparible  go to state 32
+    operand     go to state 15
+
+
+state 19
+
+   20 elseControl: ELSE . COLON NEXTLINE TAB statements
+
+    COLON  shift, and go to state 33
+
+
+state 20
+
+   13 control: ifControl afterIfControl .
+
+    $default  reduce using rule 13 (control)
+
+
+state 21
+
+   15 afterIfControl: elifControl .
+   16               | elifControl . elseControl
+   17               | elifControl . afterIfControl
+
+    ELIF  shift, and go to state 18
+    ELSE  shift, and go to state 19
+
+    ELIF      [reduce using rule 15 (afterIfControl)]
+    ELSE      [reduce using rule 15 (afterIfControl)]
+    $default  reduce using rule 15 (afterIfControl)
+
+    afterIfControl  go to state 34
+    elifControl     go to state 21
+    elseControl     go to state 35
+
+
+state 22
+
+   18 afterIfControl: elseControl .
+
+    $default  reduce using rule 18 (afterIfControl)
+
+
+state 23
+
+   26 operand: VAR .
+
+    $default  reduce using rule 26 (operand)
+
+
+state 24
+
+    7 assignment: VAR EQ calculations .
+
+    $default  reduce using rule 7 (assignment)
+
+
+state 25
+
+    8 calculations: calculation . calculations
+    9             | calculation .
+
+    STRING   shift, and go to state 10
+    INTEGER  shift, and go to state 11
+    FLOAT    shift, and go to state 12
+    VAR      shift, and go to state 23
+
+    VAR       [reduce using rule 9 (calculations)]
+    $default  reduce using rule 9 (calculations)
+
+    calculations  go to state 36
+    calculation   go to state 25
+    operand       go to state 26
+
+
+state 26
+
+   10 calculation: operand . operator
+   11            | operand .
+
+    SUM   shift, and go to state 37
+    SUB   shift, and go to state 38
+    MULT  shift, and go to state 39
+    DIV   shift, and go to state 40
+
+    $default  reduce using rule 11 (calculation)
+
+    operator  go to state 41
+
+
+state 27
+
+   31 condition: EQ . EQ
+
+    EQ  shift, and go to state 42
+
+
+state 28
+
+   32 condition: NEQ .
+
+    $default  reduce using rule 32 (condition)
+
+
+state 29
+
+   33 condition: BIGGER .
+   35          | BIGGER . EQ
+
+    EQ  shift, and go to state 43
+
+    $default  reduce using rule 33 (condition)
+
+
+state 30
+
+   34 condition: SMALLER .
+   36          | SMALLER . EQ
+
+    EQ  shift, and go to state 44
+
+    $default  reduce using rule 34 (condition)
+
+
+state 31
+
+   14 ifControl: IF comparible condition . comparible COLON NEXTLINE TAB statements
+
+    STRING   shift, and go to state 10
+    INTEGER  shift, and go to state 11
+    FLOAT    shift, and go to state 12
+    VAR      shift, and go to state 13
+
+    comparible  go to state 45
+    operand     go to state 15
+
+
+state 32
+
+   19 elifControl: ELIF comparible . condition comparible COLON NEXTLINE TAB statements
+
+    EQ       shift, and go to state 27
+    NEQ      shift, and go to state 28
+    BIGGER   shift, and go to state 29
+    SMALLER  shift, and go to state 30
+
+    condition  go to state 46
+
+
+state 33
+
+   20 elseControl: ELSE COLON . NEXTLINE TAB statements
+
+    NEXTLINE  shift, and go to state 47
+
+
+state 34
+
+   17 afterIfControl: elifControl afterIfControl .
+
+    $default  reduce using rule 17 (afterIfControl)
+
+
+state 35
+
+   16 afterIfControl: elifControl elseControl .
+   18               | elseControl .
+
+    $end      reduce using rule 16 (afterIfControl)
+    $end      [reduce using rule 18 (afterIfControl)]
+    VAR       reduce using rule 16 (afterIfControl)
+    VAR       [reduce using rule 18 (afterIfControl)]
+    IF        reduce using rule 16 (afterIfControl)
+    IF        [reduce using rule 18 (afterIfControl)]
+    ELIF      reduce using rule 16 (afterIfControl)
+    ELIF      [reduce using rule 18 (afterIfControl)]
+    ELSE      reduce using rule 16 (afterIfControl)
+    ELSE      [reduce using rule 18 (afterIfControl)]
+    $default  reduce using rule 16 (afterIfControl)
+
+
+state 36
+
+    8 calculations: calculation calculations .
+
+    $default  reduce using rule 8 (calculations)
+
+
+state 37
+
+   27 operator: SUM .
+
+    $default  reduce using rule 27 (operator)
+
+
+state 38
+
+   28 operator: SUB .
+
+    $default  reduce using rule 28 (operator)
+
+
+state 39
+
+   29 operator: MULT .
+
+    $default  reduce using rule 29 (operator)
+
+
+state 40
+
+   30 operator: DIV .
+
+    $default  reduce using rule 30 (operator)
+
+
+state 41
+
+   10 calculation: operand operator .
+
+    $default  reduce using rule 10 (calculation)
+
+
+state 42
+
+   31 condition: EQ EQ .
+
+    $default  reduce using rule 31 (condition)
+
+
+state 43
+
+   35 condition: BIGGER EQ .
+
+    $default  reduce using rule 35 (condition)
+
+
+state 44
+
+   36 condition: SMALLER EQ .
+
+    $default  reduce using rule 36 (condition)
+
+
+state 45
+
+   14 ifControl: IF comparible condition comparible . COLON NEXTLINE TAB statements
+
+    COLON  shift, and go to state 48
+
+
+state 46
+
+   19 elifControl: ELIF comparible condition . comparible COLON NEXTLINE TAB statements
+
+    STRING   shift, and go to state 10
+    INTEGER  shift, and go to state 11
+    FLOAT    shift, and go to state 12
+    VAR      shift, and go to state 13
+
+    comparible  go to state 49
+    operand     go to state 15
+
+
+state 47
+
+   20 elseControl: ELSE COLON NEXTLINE . TAB statements
+
+    TAB  shift, and go to state 50
+
+
+state 48
+
+   14 ifControl: IF comparible condition comparible COLON . NEXTLINE TAB statements
+
+    NEXTLINE  shift, and go to state 51
+
+
+state 49
+
+   19 elifControl: ELIF comparible condition comparible . COLON NEXTLINE TAB statements
+
+    COLON  shift, and go to state 52
+
+
+state 50
+
+   20 elseControl: ELSE COLON NEXTLINE TAB . statements
+
+    VAR  shift, and go to state 1
+    IF   shift, and go to state 2
+
+    statements  go to state 53
+    statement   go to state 5
+    assignment  go to state 6
+    control     go to state 7
+    ifControl   go to state 8
+
+
+state 51
+
+   14 ifControl: IF comparible condition comparible COLON NEXTLINE . TAB statements
+
+    TAB  shift, and go to state 54
+
+
+state 52
+
+   19 elifControl: ELIF comparible condition comparible COLON . NEXTLINE TAB statements
+
+    NEXTLINE  shift, and go to state 55
+
+
+state 53
+
+   20 elseControl: ELSE COLON NEXTLINE TAB statements .
+
+    $default  reduce using rule 20 (elseControl)
+
+
+state 54
+
+   14 ifControl: IF comparible condition comparible COLON NEXTLINE TAB . statements
+
+    VAR  shift, and go to state 1
+    IF   shift, and go to state 2
+
+    statements  go to state 56
+    statement   go to state 5
+    assignment  go to state 6
+    control     go to state 7
+    ifControl   go to state 8
+
+
+state 55
+
+   19 elifControl: ELIF comparible condition comparible COLON NEXTLINE . TAB statements
+
+    TAB  shift, and go to state 57
+
+
+state 56
+
+   14 ifControl: IF comparible condition comparible COLON NEXTLINE TAB statements .
+
+    $default  reduce using rule 14 (ifControl)
+
+
+state 57
+
+   19 elifControl: ELIF comparible condition comparible COLON NEXTLINE TAB . statements
+
+    VAR  shift, and go to state 1
+    IF   shift, and go to state 2
+
+    statements  go to state 58
+    statement   go to state 5
+    assignment  go to state 6
+    control     go to state 7
+    ifControl   go to state 8
+
+
+state 58
+
+   19 elifControl: ELIF comparible condition comparible COLON NEXTLINE TAB statements .
+
+    $default  reduce using rule 19 (elifControl)

@@ -8,6 +8,7 @@ digit [0-9]
   #include <iostream>
   using namespace std;
   int linenum=1;
+  int numberOfTab = 0;
 %}
 %%
 
@@ -27,13 +28,12 @@ digit [0-9]
 ">" return BIGGER;
 "<" return SMALLER;
 
+[\n]+	{ cout << "\\n at Line: " << linenum << endl; linenum++; numberOfTab = 0; return NEXTLINE; }
+[\t]+ { cout << "tab"<< endl; numberOfTab = yyleng; return TAB; }
+
 \"([^\"\\]|\\.)*\" { yylval.str_val = strdup(yytext); return STRING; }
 0|([-]?[1-9]{digit}*) { yylval.int_val = atoi(yytext); return INTEGER; }
 (0|([-]?[1-9]{digit}*))([.]{digit}*)? { yylval.float_val = atof(yytext); return FLOAT; }
 {letter}({digit}|{letter}|[_])* { yylval.var_val = strdup(yytext); return VAR; }
 
-\t { cout << "tab"<< endl; return TAB; }
-
-\n	{ linenum++; cout << "new_line"<< endl; return NEXTLINE; }
-[ \t]+
 %%

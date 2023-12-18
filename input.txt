@@ -1,8 +1,3 @@
-if a>b:
-    a = 5
-elif a<b:
-    if a<=0:
-        a=0
-    a=a*a
-else:
-    a=b+1
+x=3
+
+y=5

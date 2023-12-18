@@ -1,1 +1,7 @@
-new_line
+INTEGER:  3
+\n at Line: 1
+VAR:  x
+INTEGER:  5
+VAR:  y
+statement 2
+statement 1

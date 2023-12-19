@@ -1,0 +1,4 @@
+./y.output
+./lex.yy.x
+./y.tab.c
+y.tab.h

@@ -1,5 +1,6 @@
 all: lex yacc 
 	g++ lex.yy.c y.tab.c -ll -o project
+	./project input.txt>output.txt
 
 yacc: project.y
 	yacc -d -v project.y

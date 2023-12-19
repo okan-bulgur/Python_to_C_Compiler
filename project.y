@@ -7,7 +7,7 @@
 	extern FILE *yyin;
 	extern int yylex();
 	void yyerror(string s);
-	extern int linenum;// use variable linenum from the lex file
+	extern int linenum;
     extern int numberOfTab;
     int actualTab = 0;
 %}
@@ -28,20 +28,23 @@
 %%
 
 program:
-	statements
+	nextLine statements
 	;
 
 statements:
-    statement NEXTLINE statements {cout << "statement 1" << endl;}
+    statement NEXTLINE statements {cout << "statement 1" << " numberOfTab: " << numberOfTab << endl;}
     |
-    statement {cout << "statement 2" << endl;}
+    statement {cout << "statement 2" << " numberOfTab: " << numberOfTab << endl;}
     |
-    {cout << "statement 4" << endl;}
+    tabs nextLine statements {cout << "statement 3" << " numberOfTab: " << numberOfTab << endl;}
+    |
+    {cout << "statement 4" << " numberOfTab: " << numberOfTab << endl;}
     ;
 
 statement:
     assignment
     {   
+        cout << "number of tab: " << numberOfTab << " actual tab: " << actualTab << " at line: " << linenum << endl;
         if (numberOfTab > actualTab){
             cerr << "Tab error at line : " << linenum << endl;
             exit(0);
@@ -62,6 +65,7 @@ statement:
 statementOfIf:
     assignment
     {
+        cout << "number of tab: " << numberOfTab << " actual tab: " << actualTab << endl;
         if (numberOfTab != actualTab){
             cerr << "Tab error at line : " << linenum << endl;
             exit(0);
@@ -78,17 +82,11 @@ statementOfIf:
     ;
 
 assignment:
-    VAR EQ calculations { cout << "VAR:  " << $1 << endl; }
+    tabs VAR EQ calculations { cout << "VAR:  " << $2 << endl; }
     ;
 
 calculations:
-    calculation calculations
-    |
-    calculation
-    ;
-
-calculation:
-    operand operator
+    operand operator calculations
     |
     operand
     ;
@@ -100,7 +98,7 @@ control:
     ;
 
 ifControl:
-    IF comparible condition comparible COLON {actualTab++;}
+    tabs IF comparible condition comparible COLON {actualTab++;}
     ;
 
 afterIfControl:
@@ -114,7 +112,7 @@ afterIfControl:
     ;
 
 elifControl:
-    ELIF comparible condition comparible COLON
+    tabs ELIF comparible condition comparible COLON
     {
         if (numberOfTab != actualTab - 1){
             cerr << "Tab error at line : " << linenum << endl;
@@ -124,7 +122,7 @@ elifControl:
     ;
 
 elseControl:
-    ELSE COLON
+    tabs ELSE COLON
     {
         if (numberOfTab != actualTab - 1){
             cerr << "Tab error at line : " << linenum << endl;
@@ -174,9 +172,16 @@ condition:
     ;
 
 tabs: 
-    TAB {cout << "There are tabs in line: " << linenum << endl; }
+    TAB 
     |
     {cout << "There is not tab in line: " << linenum << endl; }
+    ;
+
+nextLine:
+    NEXTLINE nextLine
+    |
+    NEXTLINE
+    |
     ;
 
 

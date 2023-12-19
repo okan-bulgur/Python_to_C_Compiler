@@ -1,4 +1,4 @@
-./y.output
-./lex.yy.x
-./y.tab.c
+lex.yy.c
+y.output
+y.tab.c
 y.tab.h

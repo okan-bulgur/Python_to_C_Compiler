@@ -1,6 +1,5 @@
-There is not tab in line: 1
-INTEGER:  3
-VAR:  a
-number of tab: 0 actual tab: 0 at line: 2
-statement 4 numberOfTab: 0
-statement 1 numberOfTab: 0
+x=3
+Line: 2 actualTab: 0 numberOfTab: 0 lastControlLine: -1
+tab: 1
+y=5
+Line: 2 actualTab: 0 numberOfTab: 1 lastControlLine: -1

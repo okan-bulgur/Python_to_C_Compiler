@@ -7,44 +7,34 @@ digit [0-9]
   #include "y.tab.h"
   #include <iostream>
   using namespace std;
-  int linenum=1;
+  int linenum = 1;
   int numberOfTab = 0;
 %}
 %%
 
-^[ \t]+ { 
-  cout << "Tab found at Line: " << linenum << " yyleng: " << yyleng <<endl;
-  numberOfTab = yyleng; 
-  return TAB; 
-}
-[ \t]+ {cout << "Space at line: " << linenum << " yyleng: " << yyleng << endl;}
-[\n] { 
-  numberOfTab = 0;
-  linenum++; 
-  return NEXTLINE; 
-}
+":" {yylval.str_val = strdup(yytext); return COLON;}
 
+"+" {yylval.str_val = strdup(yytext); return SUM;}
+"-" {yylval.str_val = strdup(yytext); return SUB;}
+"*" {yylval.str_val = strdup(yytext); return MULT;}
+"/" {yylval.str_val = strdup(yytext); return DIV;}
 
-":" return COLON;
+"if" {yylval.str_val = strdup(yytext); return IF;}
+"elif" {yylval.str_val = strdup(yytext); return ELIF;}
+"else" {yylval.str_val = strdup(yytext); return ELSE;}
 
-"+" return SUM;
-"-" return SUB;
-"*" return MULT;
-"/" return DIV;
-
-"if" return IF;
-"elif" return ELIF;
-"else" return ELSE;
-
-"=" return EQ;
-"!=" return NEQ;
-">" return BIGGER;
-"<" return SMALLER;
+"=" {yylval.str_val = strdup(yytext); return EQ;}
+"!=" {yylval.str_val = strdup(yytext); return NEQ;}
+">" {yylval.str_val = strdup(yytext); return BIGGER;}
+"<" {yylval.str_val = strdup(yytext); return SMALLER;}
 
 \"([^\"\\]|\\.)*\" { yylval.str_val = strdup(yytext); return STRING; }
-0|([-]?[1-9]{digit}*) { yylval.int_val = atoi(yytext); return INTEGER; }
-(0|([-]?[1-9]{digit}*))([.]{digit}*)? { yylval.float_val = atof(yytext); return FLOAT; }
-{letter}({digit}|{letter}|[_])* { yylval.var_val = strdup(yytext); return VAR; }
+0|([-]?[1-9]{digit}*) { yylval.str_val = strdup(yytext); return INTEGER; }
+(0|([-]?[1-9]{digit}*))([.]{digit}*)? { yylval.str_val = strdup(yytext); return FLOAT; }
+{letter}({digit}|{letter}|[_])* { yylval.str_val = strdup(yytext); return VAR; }
+
+\n {linenum++; return NEXTLINE;}
+^([ \t]*) {numberOfTab = yyleng/4; cout<<"tab: " << numberOfTab << endl; return TAB;}
 
 .
 %%

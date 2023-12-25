@@ -2,14 +2,107 @@
 	#include <stdio.h>
 	#include <iostream>
 	#include <string>
-	#include "y.tab.h"
+	#include <string.h>
+    #include <vector>
+
 	using namespace std;
+	#include "y.tab.h"
 	extern FILE *yyin;
 	extern int yylex();
 	void yyerror(string s);
+
 	extern int linenum;
     extern int numberOfTab;
+
     int actualTab = 0;
+    int lastControlLine = -1;
+
+    struct Statement 
+    {
+        string type;
+		int startLine;
+        int tabCount;
+    };
+    vector<Statement> listOfStatement;
+
+    void displayInfo(){
+        cout << "Line: " << linenum << " actualTab: " << actualTab << " numberOfTab: " << numberOfTab << " lastControlLine: "<< lastControlLine << endl;
+    }
+
+    void afterControlStateTabCheck(int linenum, int lastControlLine, int actualTab, int numberOfTab){
+        if (linenum == lastControlLine+1 && actualTab != numberOfTab){
+            cerr << "Must be at least one statement after control statement" << endl;
+            cerr << "Tab error at line: " << linenum << endl;
+            exit(1);
+        }
+    }
+
+    void addNewStatement(string type, int startLine, int tabCount){
+        Statement newStatement;
+        newStatement.type = type;
+        newStatement.startLine = startLine;
+        newStatement.tabCount = tabCount;
+        listOfStatement.push_back(newStatement);
+    }
+
+    void checkStatementConsistency(){
+        int size = listOfStatement.size();
+        Statement lastStatement = listOfStatement[size-1];
+        string type = lastStatement.type;
+        int startLine = lastStatement.startLine;
+        int tabCount = lastStatement.tabCount;
+
+        if(type == "if"){
+            if(tabCount != actualTab){
+                cerr << "Tab error at line: " << startLine << endl;
+                exit(1);
+            }
+            else{
+                return;
+            }
+        }
+
+        if(size == 1 && (type == "elif" || type == "else")){
+            cerr << "1) if/else consistency in line: " << startLine << endl;
+            exit(1);
+        }
+
+        if(listOfStatement[size-2].type == "assignment" && listOfStatement[size-2].tabCount == tabCount && type != "if"){
+            cerr << "2) if/else consistency in line: " << startLine << endl;
+            exit(1);
+        }
+
+        int checkCount = 0;
+        int lastMatchedIf = -1;
+        int lastMatchedElse = -1;
+        int checkIf = 0;
+        int checkElse = 0;
+
+        for(int i=size-2; i>=0; i--){
+            if(listOfStatement[i].tabCount == tabCount){
+                checkCount = 1;
+                if(listOfStatement[i].type == "if" && checkIf == 0){
+                    lastMatchedIf = listOfStatement[i].startLine;
+                    checkIf = 1;
+                }
+                else if(listOfStatement[i].type == "else" && checkElse == 0){
+                    lastMatchedElse = listOfStatement[i].startLine;
+                    checkElse = 1;
+                }
+            }
+        }
+
+        if(lastMatchedIf == -1 || lastMatchedElse > lastMatchedIf){
+            cerr << "3) if/else consistency in line: " << startLine << endl;
+            exit(1);
+        }
+
+        if (checkCount == 0){
+            cerr << "4) if/else consistency in line: " << startLine << endl;
+            exit(1);
+        }
+    }
+
 %}
 
 %union {
@@ -20,181 +113,207 @@
 }
 
 %token <str_val> STRING
-%token <int_val> INTEGER
-%token <float_val> FLOAT
-%token <var_val> VAR
-%token COLON SUM SUB MULT DIV IF ELIF ELSE EQ NEQ BIGGER SMALLER TAB NEXTLINE
+%token <str_val> INTEGER
+%token <str_val> FLOAT
+%token <str_val> VAR
+%token <str_val> IF <str_val> ELIF <str_val> ELSE
+%token <str_val> SUM <str_val> SUB <str_val> MULT <str_val> DIV
+%token <str_val> EQ <str_val> NEQ <str_val> BIGGER <str_val> SMALLER
+%token <str_val> COLON
+%token TAB NEXTLINE
+
+%type<str_val> assignment
+%type<str_val> rightAssignment
+%type<str_val> operand
+%type<str_val> operator
+%type<str_val> condition
+
+%type<str_val> controlStatement
+%type<str_val> ifContol
+%type<str_val> elifControl
+%type<str_val> elseControl
 
 %%
 
 program:
-	nextLine statements
-	;
+    statements
+    |
+    ;
 
 statements:
-    statement NEXTLINE statements {cout << "statement 1" << " numberOfTab: " << numberOfTab << endl;}
+    statement statements
     |
-    statement {cout << "statement 2" << " numberOfTab: " << numberOfTab << endl;}
-    |
-    tabs nextLine statements {cout << "statement 3" << " numberOfTab: " << numberOfTab << endl;}
-    |
-    {cout << "statement 4" << " numberOfTab: " << numberOfTab << endl;}
+    statement
     ;
 
 statement:
     assignment
-    {   
-        cout << "number of tab: " << numberOfTab << " actual tab: " << actualTab << " at line: " << linenum << endl;
-        if (numberOfTab > actualTab){
-            cerr << "Tab error at line : " << linenum << endl;
-            exit(0);
-        }
-        actualTab = numberOfTab;
-    } 
-    |
-    control
     {
-        if (numberOfTab > actualTab){
-            cerr << "Tab error at line : " << linenum << endl;
-            exit(0);
-        }
-        actualTab = numberOfTab;
-    }
-    ;
+        cout << $1 << endl;
+        displayInfo();
 
-statementOfIf:
-    assignment
-    {
-        cout << "number of tab: " << numberOfTab << " actual tab: " << actualTab << endl;
-        if (numberOfTab != actualTab){
-            cerr << "Tab error at line : " << linenum << endl;
-            exit(0);
+        afterControlStateTabCheck(linenum, lastControlLine, actualTab, numberOfTab);
+
+        if (actualTab > 0){
+            actualTab = numberOfTab;
         }
+
+        else if (actualTab == 0 && actualTab != numberOfTab){
+            cerr << "Tab error at line: " << linenum << endl;
+            exit(1);
+        }
+
+        addNewStatement("assignment", linenum, actualTab);
     }
     |
-    control
+    controlStatement
     {
-        if (numberOfTab != actualTab){
-            cerr << "Tab error at line : " << linenum << endl;
-            exit(0);
-        }
+        cout << $1 << endl;
+
+        lastControlLine = linenum;
+
+        displayInfo();
+    }
+    |
+    NEXTLINE
+    {
+        numberOfTab = 0;
     }
     ;
 
 assignment:
-    tabs VAR EQ calculations { cout << "VAR:  " << $2 << endl; }
-    ;
-
-calculations:
-    operand operator calculations
+    VAR EQ rightAssignment 
+    { 
+        string combined = string($1) + string($2) + string($3);
+		$$ = strdup(combined.c_str());
+    }
     |
-    operand
-    ;
-
-control:
-    ifControl statementOfIf statements
-    |
-    ifControl statementOfIf statements afterIfControl
-    ;
-
-ifControl:
-    tabs IF comparible condition comparible COLON {actualTab++;}
-    ;
-
-afterIfControl:
-    elifControl statementOfIf statements
-    |
-    elifControl statementOfIf statements elseControl statementOfIf statements
-    |
-    elifControl statementOfIf statements afterIfControl
-    |
-    elseControl statementOfIf statements
-    ;
-
-elifControl:
-    tabs ELIF comparible condition comparible COLON
-    {
-        if (numberOfTab != actualTab - 1){
-            cerr << "Tab error at line : " << linenum << endl;
-            exit(0);
-        } 
+    TAB assignment
+    { 
+        $$ = $2; 
     }
     ;
 
-elseControl:
-    tabs ELSE COLON
-    {
-        if (numberOfTab != actualTab - 1){
-            cerr << "Tab error at line : " << linenum << endl;
-            exit(0);
-        } 
+rightAssignment:
+    operand operator rightAssignment
+    { 
+        string combined = string($1) + string($2) + string($3);
+		$$ = strdup(combined.c_str());
     }
+    |
+    operand
+    { $$ = $1; }
     ;
 
-comparible:
-    operand
+controlStatement:
+    ifContol
+    {
+        $$ = $1;
+
+        afterControlStateTabCheck(linenum, lastControlLine, actualTab, numberOfTab);
+        addNewStatement("if", linenum, actualTab);
+        checkStatementConsistency();
+        actualTab++;
+
+    }
     |
-    VAR
+    elifControl
+    {
+        $$ = $1;
+
+        afterControlStateTabCheck(linenum, lastControlLine, actualTab, numberOfTab);
+        addNewStatement("elif", linenum, actualTab-1);
+        checkStatementConsistency();
+    }
+    |
+    elseControl
+    {
+        $$ = $1;
+
+        afterControlStateTabCheck(linenum, lastControlLine, actualTab, numberOfTab);
+        addNewStatement("else", linenum, actualTab-1);
+        checkStatementConsistency();
+    }
+	;
+
+ifContol: 
+	IF operand condition operand COLON
+    { 
+        string combined = string($1) + " " + string($2) + string($3) + string($4) + string($5);
+		$$ = strdup(combined.c_str());
+    }
+    |
+    TAB ifContol
+    { $$ = $2; }
+    ;
+
+elifControl: 
+    ELIF operand condition operand COLON
+    { 
+        string combined = string($1) + " " + string($2) + string($3) + string($4) + string($5);
+		$$ = strdup(combined.c_str());
+    }
+    |
+    TAB elifControl
+    { $$ = $2; }
+    ;
+
+elseControl: 
+    ELSE COLON
+    { 
+        string combined = string($1) + string($2);
+		$$ = strdup(combined.c_str());
+    }
+    |
+    TAB elseControl
+    { $$ = $2; }
     ;
 
 operand:
-    STRING { cout << "STRING:  " << $1 <<endl; }
+    STRING { $$ = $1; }
     |
-    INTEGER { cout << "INTEGER:  " << $1 <<endl; }
+    INTEGER { $$ = $1; }
     |
-    FLOAT { cout << "FLOAT:  " << $1 <<endl; }
+    FLOAT { $$ = $1; }
     |
-    VAR { cout << "VAR:  " << $1 <<endl; }
+    VAR { $$ = $1; }
     ;
 
 operator:
-    SUM { cout << "+" <<endl; }
+    SUM { $$ = $1; }
     |
-    SUB { cout << "-" <<endl; }
+    SUB { $$ = $1; }
     |
-    MULT { cout << "*" <<endl; }
+    MULT { $$ = $1; }
     |
-    DIV { cout << "/" <<endl; }
+    DIV { $$ = $1; }
     ;
 
 condition:
-    EQ EQ { cout << "==" <<endl; }
+    EQ EQ { $$ = $1; }
     |
-    NEQ { cout << "!=" <<endl; }
+    NEQ { $$ = $1; }
     |
-    BIGGER { cout << ">" <<endl; }
+    BIGGER { $$ = $1; }
     |
-    SMALLER { cout << "<" <<endl; }
+    SMALLER { $$ = $1; }
     |
-    BIGGER EQ { cout << ">=" <<endl; }
+    BIGGER EQ { $$ = $1; }
     |
-    SMALLER EQ { cout << "<=" <<endl; }
+    SMALLER EQ { $$ = $1; }
     ;
-
-tabs: 
-    TAB 
-    |
-    {cout << "There is not tab in line: " << linenum << endl; }
-    ;
-
-nextLine:
-    NEXTLINE nextLine
-    |
-    NEXTLINE
-    |
-    ;
-
 
 %%
+
 void yyerror(string s){
 	cerr<<"Error at line: "<<linenum<<endl;
 }
+
 int yywrap(){
 	return 1;
 }
-int main(int argc, char *argv[])
-{
-    /* Call the lexer, then quit. */
+
+int main(int argc, char *argv[]){
     yyin=fopen(argv[1],"r");
     yyparse();
     fclose(yyin);

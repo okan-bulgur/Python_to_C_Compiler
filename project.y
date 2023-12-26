@@ -65,7 +65,7 @@
         }
     }
 
-    string getStatementPartSring(string val, int numberOfTab, int actualTab, int prevActualTab){
+    string getStatementPartSring(string val, int numberOfTab, int prevActualTab){
         string tabCombine = "\t";
         for(int i=0; i<numberOfTab; i++){
             tabCombine += "\t";
@@ -99,7 +99,7 @@
                 str += "string ";
             }
             else{
-                str += "integer ";
+                str += "int ";
             }
             vector<string> list = listOfTypes[pair.first];
             for(string var : list){
@@ -206,10 +206,13 @@
 
     string findVariableType(string varName, int tabCount){
 
-        for(int i=0; i<listOfVariable[tabCount].size(); i++){
-            if(listOfVariable[tabCount][i].name == varName){
-                return listOfVariable[tabCount][i].currentType;
+        while(tabCount >= 0){
+            for(int i=0; i<listOfVariable[tabCount].size(); i++){
+                if(listOfVariable[tabCount][i].name == varName){
+                    return listOfVariable[tabCount][i].currentType;
+                }
             }
+            tabCount--;
         }
         return "undeclared";
     }
@@ -274,7 +277,7 @@ program:
         result += bodyPart;
         result += "}";
         cout << result << endl;
-        displayWholeMaps();
+        //displayWholeMaps();
     }
     |
     ;
@@ -288,13 +291,13 @@ statements:
 statement:
     assignment
     {
-        string combined = getStatementPartSring($1, numberOfTab, actualTab, prevActualTab);
+        string combined = getStatementPartSring($1, numberOfTab, prevActualTab);
         bodyPart += combined;
     }
     |
     controlStatement
     {
-        string combined = getStatementPartSring($1, numberOfTab, actualTab, prevActualTab);
+        string combined = getStatementPartSring($1, numberOfTab, prevActualTab);
         bodyPart += combined;
 
         lastControlLine = linenum;

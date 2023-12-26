@@ -1,5 +1,15 @@
-x=3
+varName: y type: string
+y="okan"+"se"
 Line: 2 actualTab: 0 numberOfTab: 0 lastControlLine: -1
-tab: 1
-y=5
-Line: 2 actualTab: 0 numberOfTab: 1 lastControlLine: -1
+varName: x type: string
+x=y+"as"
+Line: 3 actualTab: 0 numberOfTab: 0 lastControlLine: -1
+varName: x type: integer
+x=2
+Line: 4 actualTab: 0 numberOfTab: 0 lastControlLine: -1
+varName: x type: float
+x=x*2.5
+Line: 5 actualTab: 0 numberOfTab: 0 lastControlLine: -1
+varName: y type: float
+y=x/2
+Line: 5 actualTab: 0 numberOfTab: 0 lastControlLine: -1

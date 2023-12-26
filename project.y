@@ -17,6 +17,18 @@
     int actualTab = 0;
     int lastControlLine = -1;
 
+    struct Variable 
+    {
+        string name;
+		int intVal;
+        int floatVal;
+        int stringVal;
+        string currentType;
+    };
+    vector<Variable> listOfVariable;
+
+    vector<string> operandTypes;
+
     struct Statement 
     {
         string type;
@@ -103,6 +115,58 @@
         }
     }
 
+    string findVariableType(string varName){
+        for(int i=0; i<listOfVariable.size(); i++){
+            if(listOfVariable[i].name == varName){
+                return listOfVariable[i].currentType;
+            }
+        }
+        return "undeclared";
+    }
+
+    void addNewVariable(string varName, string currentType){
+        int intVal = 0;
+        int floatVal = 0;
+        int stringVal = 0;
+
+        if(currentType == "intiger"){
+            intVal = 1;
+        }
+        else if(currentType == "float"){
+            floatVal = 1;
+        }
+        else{
+            stringVal = 1;
+        }
+
+        Variable newVar;
+        newVar.name = varName;
+        newVar.intVal = intVal;
+        newVar.floatVal = floatVal;
+        newVar.stringVal = stringVal;
+        newVar.currentType = currentType;
+        listOfVariable.push_back(newVar);
+    }
+
+    void updateVariable(string varName, string type){
+        for(int i=0; i<listOfVariable.size(); i++){
+            if(listOfVariable[i].name == varName){
+                listOfVariable[i].currentType = type;
+
+                if(type == "intiger"){
+                    listOfVariable[i].intVal = 1;
+                }
+                else if(type == "float"){
+                    listOfVariable[i].floatVal = 1;
+                }
+                else{
+                    listOfVariable[i].stringVal = 1;
+                }
+            }
+        }
+        addNewVariable(varName, type);
+    }
+
 %}
 
 %union {
@@ -186,6 +250,16 @@ assignment:
     { 
         string combined = string($1) + string($2) + string($3);
 		$$ = strdup(combined.c_str());
+
+        string typeOfVar = operandTypes.back();
+        operandTypes.clear();
+
+        updateVariable($1, typeOfVar);
+
+        string type = findVariableType($1);
+        cout << "varName: " << $1 << " type: " <<  type <<endl;
+
+
     }
     |
     TAB assignment
@@ -199,6 +273,29 @@ rightAssignment:
     { 
         string combined = string($1) + string($2) + string($3);
 		$$ = strdup(combined.c_str());
+
+        string lastOperand_1 = operandTypes.back();
+        operandTypes.pop_back();
+        string lastOperand_2 = operandTypes.back();
+        operandTypes.pop_back();  
+
+        if (lastOperand_1 == "string" && lastOperand_2 == "string"){
+            operandTypes.push_back("string");
+        }
+        
+        else if ((lastOperand_1 == "string" && lastOperand_2 != "string") || (lastOperand_2 == "string" && lastOperand_1 != "string")){
+            cerr << "Type inconsistency in line: " << linenum << endl;
+            exit(1);
+        }
+
+        else if (lastOperand_1 == "float" || lastOperand_2 == "float"){
+            operandTypes.push_back("float");
+        }
+        
+        else{
+            operandTypes.push_back("intiger");
+        }
+
     }
     |
     operand
@@ -270,13 +367,29 @@ elseControl:
     ;
 
 operand:
-    STRING { $$ = $1; }
+    STRING { 
+        $$ = $1; 
+        operandTypes.push_back("string");
+    }
     |
-    INTEGER { $$ = $1; }
+    INTEGER { 
+        $$ = $1; 
+        operandTypes.push_back("integer");
+    }
     |
-    FLOAT { $$ = $1; }
+    FLOAT { 
+        $$ = $1; 
+        operandTypes.push_back("float");
+    }
     |
-    VAR { $$ = $1; }
+    VAR {
+        $$ = $1;
+        string type = findVariableType($1);
+        if(type == "undeclared"){
+            cerr << $1 << " is undeclared in line: " << linenum << endl;
+        }
+        operandTypes.push_back(type);
+    }
     ;
 
 operator:

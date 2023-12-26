@@ -33,8 +33,8 @@ digit [0-9]
 (0|([-]?[1-9]{digit}*))([.]{digit}*)? { yylval.str_val = strdup(yytext); return FLOAT; }
 {letter}({digit}|{letter}|[_])* { yylval.str_val = strdup(yytext); return VAR; }
 
-\n {linenum++; return NEXTLINE;}
-^([ \t]*) {numberOfTab = yyleng/4; cout<<"tab: " << numberOfTab << endl; return TAB;}
+\n {return NEXTLINE;}
+^([ \t]*) {numberOfTab = yyleng/4; return TAB;}
 
 .
 %%

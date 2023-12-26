@@ -4,9 +4,10 @@
 	#include <string>
 	#include <string.h>
     #include <vector>
+    #include <map>
+	#include "y.tab.h"
 
 	using namespace std;
-	#include "y.tab.h"
 	extern FILE *yyin;
 	extern int yylex();
 	void yyerror(string s);
@@ -16,18 +17,14 @@
 
     int actualTab = 0;
     int lastControlLine = -1;
+    int prevActualTab = 0;
+    string bodyPart;
 
     struct Variable 
     {
         string name;
-		int intVal;
-        int floatVal;
-        int stringVal;
         string currentType;
     };
-    vector<Variable> listOfVariable;
-
-    vector<string> operandTypes;
 
     struct Statement 
     {
@@ -35,14 +32,96 @@
 		int startLine;
         int tabCount;
     };
+
+    map<int, vector<Variable>> listOfVariable;
+    map<string, vector<string>> listOfTypes;
+
+    vector<string> operandTypes;
     vector<Statement> listOfStatement;
 
-    void displayInfo(){
-        cout << "Line: " << linenum << " actualTab: " << actualTab << " numberOfTab: " << numberOfTab << " lastControlLine: "<< lastControlLine << endl;
+    void displayWholeMaps(){
+        cout << "\n\n**********************"<< endl;
+        cout << "List of variables" << endl;
+        cout << "**********************"<< endl;
+        for (const auto& pair : listOfVariable) {
+            cout << "\nTab: " << pair.first << endl;
+            cout << "================="<< endl;
+            vector<Variable> list = listOfVariable[pair.first];
+            for(Variable var : list){
+                cout << "Name: ("<< var.name << ") || Type: (" << var.currentType << ")" << endl;
+            }
+        }
+
+        cout << "\n\n**********************"<< endl;
+        cout << "List of types" << endl;
+        cout << "**********************"<< endl;
+        for (const auto& pair : listOfTypes) {
+            cout << "\nType: " << pair.first << endl;
+            cout << "================="<< endl;
+            vector<string> list = listOfTypes[pair.first];
+            for(string var : list){
+                cout << "Name: ("<< var <<")"<<endl;
+            }
+        }
+    }
+
+    string getStatementPartSring(string val, int numberOfTab, int actualTab, int prevActualTab){
+        string tabCombine = "\t";
+        for(int i=0; i<numberOfTab; i++){
+            tabCombine += "\t";
+        }
+
+        string closeBracket;
+        if(prevActualTab > numberOfTab){
+            int tmp = prevActualTab;
+            while(tmp > numberOfTab){
+                int count = tmp-1;
+                string tabCombine = "\t";
+                for(int i=0; i<count; i++){
+                    tabCombine += "\t";
+                }
+                closeBracket += tabCombine + "}\n";
+                tmp--;
+            }
+        }
+
+        string combined = closeBracket + tabCombine + string(val) + "\n";
+        return combined;
+    }
+
+    string getDeclarePartString(){
+        string str = "\t";
+        for (const auto& pair : listOfTypes) {
+            if(pair.first == "flt"){
+                str += "float ";
+            }
+            else if(pair.first == "str"){
+                str += "string ";
+            }
+            else{
+                str += "integer ";
+            }
+            vector<string> list = listOfTypes[pair.first];
+            for(string var : list){
+                str += var + "_" + pair.first + ",";
+            }
+            str.pop_back();
+            str += ";\n\t";
+        }
+        str.pop_back();
+        str += "\n";
+        return str;
+    }
+
+    void clearListForVariableList(int tabCount){
+        if (listOfVariable.find(tabCount) != listOfVariable.end()){
+            listOfVariable[tabCount].clear();
+        }
     }
 
     void afterControlStateTabCheck(int linenum, int lastControlLine, int actualTab, int numberOfTab){
         if (linenum == lastControlLine+1 && actualTab != numberOfTab){
+            cerr << "ac: "<< actualTab << " nt: "<< numberOfTab << endl;
             cerr << "Must be at least one statement after control statement" << endl;
             cerr << "Tab error at line: " << linenum << endl;
             exit(1);
@@ -115,58 +194,45 @@
         }
     }
 
-    string findVariableType(string varName){
-        for(int i=0; i<listOfVariable.size(); i++){
-            if(listOfVariable[i].name == varName){
-                return listOfVariable[i].currentType;
+    void addTypeList(string varName, string type){
+        
+        for(int i=0; i<listOfTypes[type].size(); i++){
+            if(varName.compare(listOfTypes[type][i]) == 0){
+                return;
+            }
+        }
+        listOfTypes[type].push_back(varName);
+    }
+
+    string findVariableType(string varName, int tabCount){
+
+        for(int i=0; i<listOfVariable[tabCount].size(); i++){
+            if(listOfVariable[tabCount][i].name == varName){
+                return listOfVariable[tabCount][i].currentType;
             }
         }
         return "undeclared";
     }
 
-    void addNewVariable(string varName, string currentType){
-        int intVal = 0;
-        int floatVal = 0;
-        int stringVal = 0;
-
-        if(currentType == "intiger"){
-            intVal = 1;
-        }
-        else if(currentType == "float"){
-            floatVal = 1;
-        }
-        else{
-            stringVal = 1;
-        }
+    void addNewVariable(string varName, string currentType, int tabCount){
 
         Variable newVar;
         newVar.name = varName;
-        newVar.intVal = intVal;
-        newVar.floatVal = floatVal;
-        newVar.stringVal = stringVal;
         newVar.currentType = currentType;
-        listOfVariable.push_back(newVar);
+
+        listOfVariable[tabCount].push_back(newVar);
     }
 
-    void updateVariable(string varName, string type){
-        for(int i=0; i<listOfVariable.size(); i++){
-            if(listOfVariable[i].name == varName){
-                listOfVariable[i].currentType = type;
-
-                if(type == "intiger"){
-                    listOfVariable[i].intVal = 1;
-                }
-                else if(type == "float"){
-                    listOfVariable[i].floatVal = 1;
-                }
-                else{
-                    listOfVariable[i].stringVal = 1;
-                }
+    void updateVariable(string varName, string type, int tabCount){
+        for(int i=0; i<listOfVariable[tabCount].size(); i++){
+            if(listOfVariable[tabCount][i].name == varName){
+                listOfVariable[tabCount][i].currentType = type;
+                return;
             }
         }
-        addNewVariable(varName, type);
+        addNewVariable(varName, type, tabCount);
     }
-
+    
 %}
 
 %union {
@@ -201,6 +267,15 @@
 
 program:
     statements
+    {
+        string result = "void main()\n{\n";
+        string declarePart = getDeclarePartString();
+        result += declarePart;
+        result += bodyPart;
+        result += "}";
+        cout << result << endl;
+        displayWholeMaps();
+    }
     |
     ;
 
@@ -213,8 +288,31 @@ statements:
 statement:
     assignment
     {
-        cout << $1 << endl;
-        displayInfo();
+        string combined = getStatementPartSring($1, numberOfTab, actualTab, prevActualTab);
+        bodyPart += combined;
+    }
+    |
+    controlStatement
+    {
+        string combined = getStatementPartSring($1, numberOfTab, actualTab, prevActualTab);
+        bodyPart += combined;
+
+        lastControlLine = linenum;
+    }
+    |
+    NEXTLINE
+    {
+        numberOfTab = 0;
+        linenum++;
+        prevActualTab = actualTab;
+    }
+    ;
+
+assignment:
+    VAR EQ rightAssignment 
+    { 
+
+        // Tab checking part
 
         afterControlStateTabCheck(linenum, lastControlLine, actualTab, numberOfTab);
 
@@ -228,38 +326,20 @@ statement:
         }
 
         addNewStatement("assignment", linenum, actualTab);
-    }
-    |
-    controlStatement
-    {
-        cout << $1 << endl;
 
-        lastControlLine = linenum;
-
-        displayInfo();
-    }
-    |
-    NEXTLINE
-    {
-        numberOfTab = 0;
-    }
-    ;
-
-assignment:
-    VAR EQ rightAssignment 
-    { 
-        string combined = string($1) + string($2) + string($3);
-		$$ = strdup(combined.c_str());
+        // Type checking part
 
         string typeOfVar = operandTypes.back();
         operandTypes.clear();
 
-        updateVariable($1, typeOfVar);
+        addTypeList($1, typeOfVar);
+        updateVariable($1, typeOfVar, numberOfTab);
 
-        string type = findVariableType($1);
-        cout << "varName: " << $1 << " type: " <<  type <<endl;
+        string type = findVariableType($1, numberOfTab);
 
-
+        string varCombine = string($1) + "_" + typeOfVar;
+        string combined = varCombine + " " + string($2) + " " + string($3) + ";";
+		$$ = strdup(combined.c_str());
     }
     |
     TAB assignment
@@ -271,31 +351,30 @@ assignment:
 rightAssignment:
     operand operator rightAssignment
     { 
-        string combined = string($1) + string($2) + string($3);
-		$$ = strdup(combined.c_str());
-
         string lastOperand_1 = operandTypes.back();
         operandTypes.pop_back();
         string lastOperand_2 = operandTypes.back();
         operandTypes.pop_back();  
 
-        if (lastOperand_1 == "string" && lastOperand_2 == "string"){
-            operandTypes.push_back("string");
+        if (lastOperand_1 == "str" && lastOperand_2 == "str"){
+            operandTypes.push_back("str");
         }
         
-        else if ((lastOperand_1 == "string" && lastOperand_2 != "string") || (lastOperand_2 == "string" && lastOperand_1 != "string")){
+        else if ((lastOperand_1 == "str" && lastOperand_2 != "str") || (lastOperand_2 == "str" && lastOperand_1 != "str")){
             cerr << "Type inconsistency in line: " << linenum << endl;
             exit(1);
         }
 
-        else if (lastOperand_1 == "float" || lastOperand_2 == "float"){
-            operandTypes.push_back("float");
+        else if (lastOperand_1 == "flt" || lastOperand_2 == "flt"){
+            operandTypes.push_back("flt");
         }
         
         else{
-            operandTypes.push_back("intiger");
+            operandTypes.push_back("int");
         }
 
+        string combined = string($1) + " " + string($2) + " " + string($3);
+		$$ = strdup(combined.c_str());
     }
     |
     operand
@@ -304,13 +383,14 @@ rightAssignment:
 
 controlStatement:
     ifContol
-    {
+    {   
         $$ = $1;
 
         afterControlStateTabCheck(linenum, lastControlLine, actualTab, numberOfTab);
-        addNewStatement("if", linenum, actualTab);
+        addNewStatement("if", linenum, numberOfTab);
         checkStatementConsistency();
         actualTab++;
+        clearListForVariableList(numberOfTab+1);
 
     }
     |
@@ -319,8 +399,10 @@ controlStatement:
         $$ = $1;
 
         afterControlStateTabCheck(linenum, lastControlLine, actualTab, numberOfTab);
-        addNewStatement("elif", linenum, actualTab-1);
+        addNewStatement("elif", linenum, numberOfTab);
         checkStatementConsistency();
+        actualTab = numberOfTab+1;
+        clearListForVariableList(numberOfTab+1);
     }
     |
     elseControl
@@ -328,15 +410,22 @@ controlStatement:
         $$ = $1;
 
         afterControlStateTabCheck(linenum, lastControlLine, actualTab, numberOfTab);
-        addNewStatement("else", linenum, actualTab-1);
+        addNewStatement("else", linenum, numberOfTab);
         checkStatementConsistency();
+        actualTab = numberOfTab+1;
+        clearListForVariableList(numberOfTab+1);
     }
 	;
 
 ifContol: 
 	IF operand condition operand COLON
-    { 
-        string combined = string($1) + " " + string($2) + string($3) + string($4) + string($5);
+    {
+        string tabCombine = "\t";
+        for(int i=0; i<numberOfTab; i++){
+            tabCombine = tabCombine + "\t";
+        }
+
+        string combined = string($1) + "(" + string($2) + string($3) + string($4) + ")\n" + tabCombine +"{";
 		$$ = strdup(combined.c_str());
     }
     |
@@ -347,7 +436,12 @@ ifContol:
 elifControl: 
     ELIF operand condition operand COLON
     { 
-        string combined = string($1) + " " + string($2) + string($3) + string($4) + string($5);
+        string tabCombine = "\t";
+        for(int i=0; i<numberOfTab; i++){
+            tabCombine += "\t";
+        }
+
+        string combined = string($1) + "(" + string($2) + string($3) + string($4) + ")\n" + tabCombine +"{";
 		$$ = strdup(combined.c_str());
     }
     |
@@ -357,8 +451,13 @@ elifControl:
 
 elseControl: 
     ELSE COLON
-    { 
-        string combined = string($1) + string($2);
+    {
+        string tabCombine = "\t";
+        for(int i=0; i<numberOfTab; i++){
+            tabCombine += "\t";
+        }
+
+        string combined = string($1) + "\n" + tabCombine + "{";
 		$$ = strdup(combined.c_str());
     }
     |
@@ -369,25 +468,30 @@ elseControl:
 operand:
     STRING { 
         $$ = $1; 
-        operandTypes.push_back("string");
+        operandTypes.push_back("str");
     }
     |
     INTEGER { 
         $$ = $1; 
-        operandTypes.push_back("integer");
+        operandTypes.push_back("int");
     }
     |
     FLOAT { 
         $$ = $1; 
-        operandTypes.push_back("float");
+        operandTypes.push_back("flt");
     }
     |
     VAR {
-        $$ = $1;
-        string type = findVariableType($1);
+        string type = findVariableType($1, numberOfTab);
+        
         if(type == "undeclared"){
             cerr << $1 << " is undeclared in line: " << linenum << endl;
+            exit(1);
         }
+
+        string combined = string($1) + "_" + type;
+		$$ = strdup(combined.c_str());
+
         operandTypes.push_back(type);
     }
     ;
@@ -403,7 +507,10 @@ operator:
     ;
 
 condition:
-    EQ EQ { $$ = $1; }
+    EQ EQ { 
+        string combined = string(" ") + string($1) + string($2) + string(" ");
+		$$ = strdup(combined.c_str());
+    }
     |
     NEQ { $$ = $1; }
     |
@@ -411,9 +518,15 @@ condition:
     |
     SMALLER { $$ = $1; }
     |
-    BIGGER EQ { $$ = $1; }
+    BIGGER EQ { 
+        string combined = string(" ") + string($1) + string($2) + string(" ");
+		$$ = strdup(combined.c_str());
+    }
     |
-    SMALLER EQ { $$ = $1; }
+    SMALLER EQ { 
+        string combined = string(" ") + string($1) + string($2) + string(" ");
+		$$ = strdup(combined.c_str());
+    }
     ;
 
 %%

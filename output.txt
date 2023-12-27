@@ -1,12 +1,16 @@
 void main()
 {
 	float b_flt,m_flt;
-	int a_int,n_int,x_int,m_int;
-	string y_str,x_str,w_str,a_str;
+	int no_int,a_int,n_int,x_int,m_int;
+	string name_str,x_str,y_str,w_str,a_str;
 
-	y_str = "okan" + "se";
+	name_str = "Okan";
+	name_str = name_str + "Bulgur";
+	no_int = 20200702017;
+
 	a_int = 2;
 	n_int = 2;
+
 	if(n_int == 2)
 	{
 		a_int = 2;
@@ -16,6 +20,7 @@ void main()
 			x_str = "a";
 			if(x_str >= 1)
 			{
+
 				y_str = "a";
 			}
 			elif(x_str<22)
@@ -35,5 +40,4 @@ void main()
 		a_str = x_str * "1";
 		a_str = "a";
 	}
-	m_flt = a_int + 2.4;
-}
+	m_flt = a_int + 2.4;}

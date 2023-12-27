@@ -1,4 +1,7 @@
-y="okan" + "se"
+name = "Okan"
+name = name + "Bulgur"
+no = 20200702017
+
 a=2
 n=2
 

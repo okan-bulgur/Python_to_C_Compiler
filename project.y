@@ -85,7 +85,7 @@
             }
         }
 
-        string combined = closeBracket + tabCombine + string(val) + "\n";
+        string combined = closeBracket + tabCombine + string(val);
         return combined;
     }
 
@@ -274,7 +274,7 @@ program:
         result += declarePart;
         result += bodyPart;
         result += "}";
-        cout << result << endl;
+        cout << result;
         //displayWholeMaps();
     }
     |
@@ -306,6 +306,7 @@ statement:
         numberOfTab = 0;
         linenum++;
         prevActualTab = actualTab;
+        bodyPart += "\n";
     }
     ;
 

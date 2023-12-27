@@ -1,108 +1,39 @@
 void main()
 {
 	float b_flt,m_flt;
-	integer a_int,n_int,x_int,m_int;
+	int a_int,n_int,x_int,m_int;
 	string y_str,x_str,w_str,a_str;
 
 	y_str = "okan" + "se";
-
 	a_int = 2;
-
 	n_int = 2;
-
-
 	if(n_int == 2)
 	{
-
 		a_int = 2;
-
 		x_int = 2;
-
 		if(x_int == 11)
 		{
-
 			x_str = "a";
-
 			if(x_str >= 1)
 			{
-
 				y_str = "a";
-
 			}
 			elif(x_str<22)
 			{
-
 				m_int = 1;
-
 			}
 		}
 	}
 	elif(a_int >= 3)
 	{
-
 		b_flt = 2.1;
-
 		w_str = "sa";
-
 	}
 	else
 	{
-
 		x_str = "a";
-
 		a_str = x_str * "1";
-
 		a_str = "a";
-
 	}
 	m_flt = a_int + 2.4;
 }
-
-
-**********************
-List of variables
-**********************
-
-Tab: 0
-=================
-Name: (y) || Type: (str)
-Name: (a) || Type: (int)
-Name: (n) || Type: (int)
-Name: (m) || Type: (flt)
-
-Tab: 1
-=================
-Name: (x) || Type: (str)
-Name: (a) || Type: (str)
-
-Tab: 2
-=================
-Name: (x) || Type: (str)
-
-Tab: 3
-=================
-Name: (m) || Type: (int)
-
-
-**********************
-List of types
-**********************
-
-Type: flt
-=================
-Name: (b)
-Name: (m)
-
-Type: int
-=================
-Name: (a)
-Name: (n)
-Name: (x)
-Name: (m)
-
-Type: str
-=================
-Name: (y)
-Name: (x)
-Name: (w)
-Name: (a)

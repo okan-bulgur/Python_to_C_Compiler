@@ -121,9 +121,7 @@
 
     void afterControlStateTabCheck(int linenum, int lastControlLine, int actualTab, int numberOfTab){
         if (linenum == lastControlLine+1 && actualTab != numberOfTab){
-            cerr << "ac: "<< actualTab << " nt: "<< numberOfTab << endl;
-            cerr << "Must be at least one statement after control statement" << endl;
-            cerr << "Tab error at line: " << linenum << endl;
+            cerr << "there is a tab inconsistency in line " << linenum << endl;
             exit(1);
         }
     }
@@ -145,7 +143,7 @@
 
         if(type == "if"){
             if(tabCount != actualTab){
-                cerr << "Tab error at line: " << startLine << endl;
+                cerr << "there is a tab inconsistency in line " << startLine << endl;
                 exit(1);
             }
             else{
@@ -154,12 +152,12 @@
         }
 
         if(size == 1 && (type == "elif" || type == "else")){
-            cerr << "1) if/else consistency in line: " << startLine << endl;
+            cerr << "if/else consistency in line " << startLine << endl;
             exit(1);
         }
 
         if(listOfStatement[size-2].type == "assignment" && listOfStatement[size-2].tabCount == tabCount && type != "if"){
-            cerr << "2) if/else consistency in line: " << startLine << endl;
+            cerr << "if/else consistency in line " << startLine << endl;
             exit(1);
         }
 
@@ -184,12 +182,12 @@
         }
 
         if(lastMatchedIf == -1 || lastMatchedElse > lastMatchedIf){
-            cerr << "3) if/else consistency in line: " << startLine << endl;
+            cerr << "if/else consistency in line " << startLine << endl;
             exit(1);
         }
 
         if (checkCount == 0){
-            cerr << "4) if/else consistency in line: " << startLine << endl;
+            cerr << "if/else consistency in line " << startLine << endl;
             exit(1);
         }
     }
@@ -324,7 +322,7 @@ assignment:
         }
 
         else if (actualTab == 0 && actualTab != numberOfTab){
-            cerr << "Tab error at line: " << linenum << endl;
+            cerr << "there is a tab inconsistency in line " << linenum << endl;
             exit(1);
         }
 
@@ -364,7 +362,7 @@ rightAssignment:
         }
         
         else if ((lastOperand_1 == "str" && lastOperand_2 != "str") || (lastOperand_2 == "str" && lastOperand_1 != "str")){
-            cerr << "Type inconsistency in line: " << linenum << endl;
+            cerr << "type inconsistency in line " << linenum << endl;
             exit(1);
         }
 
@@ -488,7 +486,7 @@ operand:
         string type = findVariableType($1, numberOfTab);
         
         if(type == "undeclared"){
-            cerr << $1 << " is undeclared in line: " << linenum << endl;
+            cerr << $1 << " is undeclared in line " << linenum << endl;
             exit(1);
         }
 
@@ -535,7 +533,7 @@ condition:
 %%
 
 void yyerror(string s){
-	cerr<<"Error at line: "<<linenum<<endl;
+	cerr<<"syntax error at line "<<linenum<<endl;
 }
 
 int yywrap(){

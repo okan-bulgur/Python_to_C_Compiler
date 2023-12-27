@@ -39,32 +39,6 @@
     vector<string> operandTypes;
     vector<Statement> listOfStatement;
 
-    void displayWholeMaps(){
-        cout << "\n\n**********************"<< endl;
-        cout << "List of variables" << endl;
-        cout << "**********************"<< endl;
-        for (const auto& pair : listOfVariable) {
-            cout << "\nTab: " << pair.first << endl;
-            cout << "================="<< endl;
-            vector<Variable> list = listOfVariable[pair.first];
-            for(Variable var : list){
-                cout << "Name: ("<< var.name << ") || Type: (" << var.currentType << ")" << endl;
-            }
-        }
-
-        cout << "\n\n**********************"<< endl;
-        cout << "List of types" << endl;
-        cout << "**********************"<< endl;
-        for (const auto& pair : listOfTypes) {
-            cout << "\nType: " << pair.first << endl;
-            cout << "================="<< endl;
-            vector<string> list = listOfTypes[pair.first];
-            for(string var : list){
-                cout << "Name: ("<< var <<")"<<endl;
-            }
-        }
-    }
-
     string getStatementPartSring(string val, int numberOfTab, int prevActualTab){
         string tabCombine = "\t";
         for(int i=0; i<numberOfTab; i++){
@@ -273,9 +247,8 @@ program:
         string declarePart = getDeclarePartString();
         result += declarePart;
         result += bodyPart;
-        result += "}";
+        result += "\n}";
         cout << result;
-        //displayWholeMaps();
     }
     |
     ;

@@ -20,7 +20,6 @@ void main()
 			x_str = "a";
 			if(x_str >= 1)
 			{
-
 				y_str = "a";
 			}
 			elif(x_str<22)
@@ -40,4 +39,5 @@ void main()
 		a_str = x_str * "1";
 		a_str = "a";
 	}
-	m_flt = a_int + 2.4;}
+	m_flt = a_int + 2.4;
+}

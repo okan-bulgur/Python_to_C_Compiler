@@ -163,8 +163,10 @@
             int checkCount = 0;
             int lastMatchedIf = -1;
             int lastMatchedElse = -1;
+            int lastMatchedAssignment = -1;
             int checkIf = 0;
             int checkElse = 0;
+            int checkAssignment = 0;
 
             for(int i=size-2; i>=0; i--){
                 if(listOfStatement[i].tabCount == tabCount){
@@ -177,11 +179,15 @@
                         lastMatchedElse = listOfStatement[i].startLine;
                         checkElse = 1;
                     }
+                    else if(listOfStatement[i].type == "assignment" && checkAssignment == 0){
+                        lastMatchedAssignment = listOfStatement[i].startLine;
+                        checkAssignment = 1;
+                    }
                 }
             }
 
-            if(lastMatchedIf == -1 || lastMatchedElse > lastMatchedIf){
-                cerr << "a if/else consistency in line " << startLine << endl;
+            if(lastMatchedIf == -1 || lastMatchedElse > lastMatchedIf || lastMatchedAssignment > lastMatchedIf){
+                cerr << "if/else consistency in line " << startLine << endl;
                 exit(1);
             }
 

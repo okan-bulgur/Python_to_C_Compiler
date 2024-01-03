@@ -33,18 +33,13 @@
         int tabCount;
     };
 
-    map<int, vector<Variable>> listOfVariable;
-    map<string, vector<string>> listOfTypes;
+    map<int, vector<Variable> > listOfVariable;
+    map<string, vector<string> > listOfTypes;
 
     vector<string> operandTypes;
     vector<Statement> listOfStatement;
 
-    string getStatementPartSring(string val, int numberOfTab, int prevActualTab){
-        string tabCombine = "\t";
-        for(int i=0; i<numberOfTab; i++){
-            tabCombine += "\t";
-        }
-
+    string closeParanthesis(int prevActualTab, int numberOfTab){
         string closeBracket;
         if(prevActualTab > numberOfTab){
             int tmp = prevActualTab;
@@ -58,6 +53,16 @@
                 tmp--;
             }
         }
+        return closeBracket;
+    }
+
+    string getStatementPartSring(string val, int numberOfTab, int prevActualTab){
+        string tabCombine = "\t";
+        for(int i=0; i<numberOfTab; i++){
+            tabCombine += "\t";
+        }
+
+        string closeBracket = closeParanthesis(prevActualTab, numberOfTab);      
 
         string combined = closeBracket + tabCombine + string(val);
         return combined;
@@ -115,6 +120,15 @@
         int startLine = lastStatement.startLine;
         int tabCount = lastStatement.tabCount;
 
+        if(size > 1 && type == "assignment"){
+            string prevType = listOfStatement[size-2].type;
+            int prevTabCount = listOfStatement[size-2].tabCount;
+            if((prevType == "if" || prevType == "elif" || prevType == "else") && (tabCount != prevTabCount+1)){
+                cerr << "there is a tab inconsistency in line " << startLine << endl;
+                exit(1);
+            }
+        }
+
         if(type == "if"){
             if(tabCount != actualTab){
                 cerr << "there is a tab inconsistency in line " << startLine << endl;
@@ -130,38 +144,62 @@
             exit(1);
         }
 
-        if(listOfStatement[size-2].type == "assignment" && listOfStatement[size-2].tabCount == tabCount && type != "if"){
-            cerr << "if/else consistency in line " << startLine << endl;
-            exit(1);
-        }
-
-        int checkCount = 0;
-        int lastMatchedIf = -1;
-        int lastMatchedElse = -1;
-        int checkIf = 0;
-        int checkElse = 0;
-
-        for(int i=size-2; i>=0; i--){
-            if(listOfStatement[i].tabCount == tabCount){
-                checkCount = 1;
-                if(listOfStatement[i].type == "if" && checkIf == 0){
-                    lastMatchedIf = listOfStatement[i].startLine;
-                    checkIf = 1;
+        if(type == "elif" || type == "else"){
+            int check = 0;
+            for(int i=size-2 ; i>=0 ; i--){
+                if(listOfStatement[i].type == "if" && tabCount == listOfStatement[i].tabCount){
+                    check = 1;
+                    break;
                 }
-                else if(listOfStatement[i].type == "else" && checkElse == 0){
-                    lastMatchedElse = listOfStatement[i].startLine;
-                    checkElse = 1;
-                }
+            }
+
+            if(check == 0){
+                cerr << "if/else consistency in line " << startLine << endl;
+                exit(1);
             }
         }
 
-        if(lastMatchedIf == -1 || lastMatchedElse > lastMatchedIf){
-            cerr << "if/else consistency in line " << startLine << endl;
-            exit(1);
-        }
+        if(type != "assignment"){
+            int checkCount = 0;
+            int lastMatchedIf = -1;
+            int lastMatchedElse = -1;
+            int checkIf = 0;
+            int checkElse = 0;
 
-        if (checkCount == 0){
-            cerr << "if/else consistency in line " << startLine << endl;
+            for(int i=size-2; i>=0; i--){
+                if(listOfStatement[i].tabCount == tabCount){
+                    checkCount = 1;
+                    if(listOfStatement[i].type == "if" && checkIf == 0){
+                        lastMatchedIf = listOfStatement[i].startLine;
+                        checkIf = 1;
+                    }
+                    else if(listOfStatement[i].type == "else" && checkElse == 0){
+                        lastMatchedElse = listOfStatement[i].startLine;
+                        checkElse = 1;
+                    }
+                }
+            }
+
+            if(lastMatchedIf == -1 || lastMatchedElse > lastMatchedIf){
+                cerr << "a if/else consistency in line " << startLine << endl;
+                exit(1);
+            }
+
+            if (checkCount == 0){
+                cerr << "b if/else consistency in line " << startLine << endl;
+                exit(1);
+            }
+        }
+    }
+
+    void controlLastStatement(){
+        int size = listOfStatement.size();
+        Statement lastStatement = listOfStatement[size-1];
+        string type = lastStatement.type;
+        int startLine = lastStatement.startLine;
+        
+        if(type != "assignment"){
+            cerr << "there is a tab inconsistency in line " << startLine << endl;
             exit(1);
         }
     }
@@ -243,10 +281,16 @@
 program:
     statements
     {
+        controlLastStatement();
         string result = "void main()\n{\n";
         string declarePart = getDeclarePartString();
         result += declarePart;
         result += bodyPart;
+        if(actualTab != 0){
+            actualTab = 0;
+             result += "\n";
+            result += closeParanthesis(prevActualTab, 0);
+        }
         result += "\n}";
         cout << result;
     }
@@ -301,6 +345,7 @@ assignment:
         }
 
         addNewStatement("assignment", linenum, actualTab);
+        checkStatementConsistency();
 
         // Type checking part
 
@@ -315,6 +360,7 @@ assignment:
         string varCombine = string($1) + "_" + typeOfVar;
         string combined = varCombine + " " + string($2) + " " + string($3) + ";";
 		$$ = strdup(combined.c_str());
+
     }
     |
     TAB assignment

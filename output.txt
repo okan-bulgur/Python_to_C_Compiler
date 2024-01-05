@@ -27,6 +27,7 @@ void main()
 				m_int = 1;
 			}
 		}
+		a_int = 3;
 	}
 	elif(a_int >= 3)
 	{

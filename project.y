@@ -294,7 +294,7 @@ program:
         result += bodyPart;
         if(actualTab != 0){
             actualTab = 0;
-             result += "\n";
+            result += "\n";
             result += closeParanthesis(prevActualTab, 0);
         }
         result += "\n}";
@@ -314,6 +314,7 @@ statement:
     {
         string combined = getStatementPartSring($1, numberOfTab, prevActualTab);
         bodyPart += combined;
+        prevActualTab = actualTab;
     }
     |
     controlStatement
@@ -322,6 +323,7 @@ statement:
         bodyPart += combined;
 
         lastControlLine = linenum;
+        prevActualTab = actualTab;
     }
     |
     NEXTLINE
@@ -412,7 +414,9 @@ controlStatement:
     ifContol
     {   
         $$ = $1;
-
+        if(actualTab >= numberOfTab){
+            actualTab = numberOfTab;
+        }
         afterControlStateTabCheck(linenum, lastControlLine, actualTab, numberOfTab);
         addNewStatement("if", linenum, numberOfTab);
         checkStatementConsistency();

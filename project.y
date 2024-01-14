@@ -100,7 +100,7 @@
 
     void afterControlStateTabCheck(int linenum, int lastControlLine, int actualTab, int numberOfTab){
         if (linenum == lastControlLine+1 && actualTab != numberOfTab){
-            cerr << "there is a tab inconsistency in line " << linenum << endl;
+            cout << "tab inconsistency in line " << linenum << endl;
             exit(1);
         }
     }
@@ -124,14 +124,14 @@
             string prevType = listOfStatement[size-2].type;
             int prevTabCount = listOfStatement[size-2].tabCount;
             if((prevType == "if" || prevType == "elif" || prevType == "else") && (tabCount != prevTabCount+1)){
-                cerr << "there is a tab inconsistency in line " << startLine << endl;
+                cout << "tab inconsistency in line " << startLine << endl;
                 exit(1);
             }
         }
 
         if(type == "if"){
             if(tabCount != actualTab){
-                cerr << "there is a tab inconsistency in line " << startLine << endl;
+                cout << "tab inconsistency in line " << startLine << endl;
                 exit(1);
             }
             else{
@@ -140,7 +140,7 @@
         }
 
         if(size == 1 && (type == "elif" || type == "else")){
-            cerr << "if/else consistency in line " << startLine << endl;
+            cout << "if/else consistency in line " << startLine << endl;
             exit(1);
         }
 
@@ -154,7 +154,7 @@
             }
 
             if(check == 0){
-                cerr << "if/else consistency in line " << startLine << endl;
+                cout << "if/else consistency in line " << startLine << endl;
                 exit(1);
             }
         }
@@ -187,12 +187,12 @@
             }
 
             if(lastMatchedIf == -1 || lastMatchedElse > lastMatchedIf || lastMatchedAssignment > lastMatchedIf){
-                cerr << "if/else consistency in line " << startLine << endl;
+                cout << "if/else consistency in line " << startLine << endl;
                 exit(1);
             }
 
             if (checkCount == 0){
-                cerr << "b if/else consistency in line " << startLine << endl;
+                cout << "b if/else consistency in line " << startLine << endl;
                 exit(1);
             }
         }
@@ -205,7 +205,7 @@
         int startLine = lastStatement.startLine;
         
         if(type != "assignment"){
-            cerr << "there is a tab inconsistency in line " << startLine << endl;
+            cout << "tab inconsistency in line " << startLine << endl;
             exit(1);
         }
     }
@@ -348,7 +348,7 @@ assignment:
         }
 
         else if (actualTab == 0 && actualTab != numberOfTab){
-            cerr << "there is a tab inconsistency in line " << linenum << endl;
+            cout << "tab inconsistency in line " << linenum << endl;
             exit(1);
         }
 
@@ -390,7 +390,7 @@ rightAssignment:
         }
         
         else if ((lastOperand_1 == "str" && lastOperand_2 != "str") || (lastOperand_2 == "str" && lastOperand_1 != "str")){
-            cerr << "type inconsistency in line " << linenum << endl;
+            cout << "type inconsistency in line " << linenum << endl;
             exit(1);
         }
 
@@ -414,7 +414,7 @@ controlStatement:
     ifContol
     {   
         $$ = $1;
-        if(actualTab >= numberOfTab){
+        if(actualTab > numberOfTab && linenum != lastControlLine+1){
             actualTab = numberOfTab;
         }
         afterControlStateTabCheck(linenum, lastControlLine, actualTab, numberOfTab);
@@ -423,6 +423,19 @@ controlStatement:
         actualTab++;
         clearListForVariableList(numberOfTab+1);
 
+
+        // check comparison type mismatch 
+        string lastOperand_1 = operandTypes.back();
+        operandTypes.pop_back();
+        string lastOperand_2 = operandTypes.back();
+        operandTypes.pop_back();
+        operandTypes.push_back(lastOperand_1);
+        operandTypes.push_back(lastOperand_2);
+
+        if((lastOperand_1 == "str" && lastOperand_2 != "str") || (lastOperand_1 != "str" && lastOperand_2 == "str")){
+            cout<<"comparison type mismatch in line " << linenum <<endl;
+            exit(1);
+        }
     }
     |
     elifControl
@@ -434,6 +447,19 @@ controlStatement:
         checkStatementConsistency();
         actualTab = numberOfTab+1;
         clearListForVariableList(numberOfTab+1);
+
+        // check comparison type mismatch 
+        string lastOperand_1 = operandTypes.back();
+        operandTypes.pop_back();
+        string lastOperand_2 = operandTypes.back();
+        operandTypes.pop_back();
+        operandTypes.push_back(lastOperand_1);
+        operandTypes.push_back(lastOperand_2);
+
+        if((lastOperand_1 == "str" && lastOperand_2 != "str") || (lastOperand_1 != "str" && lastOperand_2 == "str")){
+            cout<<"comparison type mismatch in line " << linenum <<endl;
+            exit(1);
+        }
     }
     |
     elseControl
@@ -456,7 +482,7 @@ ifContol:
             tabCombine = tabCombine + "\t";
         }
 
-        string combined = string($1) + "(" + string($2) + string($3) + string($4) + ")\n" + tabCombine +"{";
+        string combined = string($1) + "( " + string($2) + " " + string($3) + " " + string($4) + " )\n" + tabCombine +"{";
 		$$ = strdup(combined.c_str());
     }
     |
@@ -472,7 +498,7 @@ elifControl:
             tabCombine += "\t";
         }
 
-        string combined = string($1) + "(" + string($2) + string($3) + string($4) + ")\n" + tabCombine +"{";
+        string combined = "else if ( " + string($2) + " " + string($3) + " " + string($4) + " )\n" + tabCombine +"{";
 		$$ = strdup(combined.c_str());
     }
     |
@@ -516,7 +542,7 @@ operand:
         string type = findVariableType($1, numberOfTab);
         
         if(type == "undeclared"){
-            cerr << $1 << " is undeclared in line " << linenum << endl;
+            cout << $1 << " is undeclared in line " << linenum << endl;
             exit(1);
         }
 

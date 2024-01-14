@@ -34,7 +34,7 @@ digit [0-9]
 {letter}({digit}|{letter}|[_])* { yylval.str_val = strdup(yytext); return VAR; }
 
 \n {return NEXTLINE;}
-^([ \t]*) {numberOfTab = yyleng/4; return TAB;}
+\t {numberOfTab++; return TAB;}
 
 .
 %%
